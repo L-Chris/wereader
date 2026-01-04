@@ -106,32 +106,93 @@ function restoreState(): void {
   }
 }
 
-// 检查是否全屏
+// 检查是否全屏（包括F11浏览器全屏和元素全屏）
 function checkFullscreen(): boolean {
-  return !!(
+  // 检查元素全屏 API
+  const elementFullscreen = !!(
     document.fullscreenElement ||
     (document as any).webkitFullscreenElement ||
     (document as any).mozFullScreenElement ||
     (document as any).msFullscreenElement
   );
+  
+  // 检查浏览器全屏（F11）
+  // 当浏览器全屏时，window.innerHeight 应该等于 screen.height
+  // 并且 window.outerHeight 也应该接近 screen.height
+  const browserFullscreen = 
+    (window.innerHeight === screen.height && window.innerWidth === screen.width) ||
+    (window.outerHeight === screen.height && window.outerWidth === screen.width) ||
+    // 另一种检测方式：检查窗口是否占满整个屏幕
+    (window.screenTop === 0 && window.screenLeft === 0 && 
+     window.outerHeight >= screen.height - 100 && window.outerWidth >= screen.width - 100);
+  
+  return elementFullscreen || browserFullscreen;
 }
 
 // 监听全屏变化
 function setupFullscreenListener(): void {
-  const events = [
+  // 监听元素全屏变化事件
+  const fullscreenEvents = [
     'fullscreenchange',
     'webkitfullscreenchange',
     'mozfullscreenchange',
     'MSFullscreenChange'
   ];
   
-  events.forEach(event => {
+  fullscreenEvents.forEach(event => {
     document.addEventListener(event, () => {
       const isFullscreen = checkFullscreen();
       if (isFullscreen) {
         toggleUI(true);
+      } else {
+        // 退出全屏时，根据之前的状态决定是否显示UI
+        // 如果之前是手动隐藏的，保持隐藏；否则显示
+        const saved = localStorage.getItem('wereader_ui_hidden');
+        if (saved !== 'true') {
+          toggleUI(false);
+        }
       }
     });
+  });
+  
+  // 监听窗口大小变化（用于检测F11浏览器全屏）
+  let resizeTimer: number | null = null;
+  window.addEventListener('resize', () => {
+    // 防抖处理
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+    }
+    resizeTimer = window.setTimeout(() => {
+      const isFullscreen = checkFullscreen();
+      if (isFullscreen) {
+        toggleUI(true);
+      } else {
+        // 退出全屏时，根据之前的状态决定是否显示UI
+        const saved = localStorage.getItem('wereader_ui_hidden');
+        if (saved !== 'true') {
+          toggleUI(false);
+        }
+      }
+    }, 100);
+  });
+  
+  // 监听键盘事件，检测F11键
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // F11 键码是 122
+    if (e.key === 'F11' || e.keyCode === 122) {
+      // 延迟检查，等待浏览器全屏状态更新
+      setTimeout(() => {
+        const isFullscreen = checkFullscreen();
+        if (isFullscreen) {
+          toggleUI(true);
+        } else {
+          const saved = localStorage.getItem('wereader_ui_hidden');
+          if (saved !== 'true') {
+            toggleUI(false);
+          }
+        }
+      }, 200);
+    }
   });
 }
 
