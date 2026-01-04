@@ -1,0 +1,23 @@
+{
+  "name": "wereader-extension",
+  "version": "1.0.0",
+  "description": "微信读书阅读优化浏览器插件",
+  "scripts": {
+    "build": "tsc && npm run copy",
+    "copy": "node scripts/copy-assets.js",
+    "watch": "tsc --watch",
+    "clean": "node -e \"const fs=require('fs');try{fs.rmSync('dist',{recursive:true,force:true})}catch(e){}\""
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "browser-extension",
+    "weread",
+    "reading"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

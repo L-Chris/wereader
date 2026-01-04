@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "微信读书阅读优化",
+  "version": "1.0.0",
+  "description": "优化微信读书阅读体验，支持隐藏导航栏和工具栏",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://weread.qq.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://weread.qq.com/*"],
+      "js": ["dist/content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "commands": {
+    "toggle-ui": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "切换隐藏/显示导航栏和工具栏"
+    }
+  }
+}
+
